@@ -38,7 +38,7 @@ type Transaction struct {
 	TransactionType string  //
 	BSB             string  // the 3rd party account BSB
 	Tax             string  //
-	TransactionCode int     // Debit or Credit?
+	TransactionCode string  // Debit or Credit?
 	Account         string  // 3rd party account number
 	Amount          float64 //
 	AccountTitle    string  // 3rd party (recipient) account name. up to 32 chars

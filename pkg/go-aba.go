@@ -7,10 +7,14 @@ import (
 	"time"
 )
 
-func (aba *ABA) Generate(transactions []Transaction) error {
+func (aba *ABA) Generate() error {
+	var transactionSlice []string
+
 	headerStr := aba.GenerateHeader()
+	transactionSlice = aba.GenerateTransactions()
 	footerStr := aba.GenerateFooter()
 	log.Println(headerStr)
+	log.Println(transactionSlice)
 	log.Println(footerStr)
 	return nil
 }
@@ -37,6 +41,20 @@ func (aba *ABA) GenerateHeader() string {
 
 	headerStr := fmt.Sprintf("0                 01%s       %s%s%s%s                                        ", aba.Header.Bank, userTrunc, userNum, descTrunc, aba.Header.Date)
 	return headerStr
+}
+
+func (aba *ABA) GenerateTransactions() []string {
+	var transactions []string
+	for _, transaction := range aba.Transactions {
+		bankNum := buildBankNumber(transaction.BSB)
+
+		amount := strconv.Itoa(int(transaction.Amount))
+		amount = fillField(10, amount, "right", "0")
+
+		transactionStr := fmt.Sprintf("1%s   %s %s%s%s%s", bankNum, transaction.Account, transaction.TransactionCode, amount, transaction.AccountTitle, transaction.Reference)
+		transactions = append(transactions, transactionStr)
+	}
+	return transactions
 }
 
 func (aba *ABA) GenerateFooter() string {

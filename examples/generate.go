@@ -11,7 +11,7 @@ func main() {
 	}
 	Transaction := goAba.Transaction{
 		BSB:             "061021",
-		TransactionCode: 1,
+		TransactionCode: "50",
 		Account:         "123456",
 		Amount:          12.0,
 		AccountTitle:    "Georgian Council of New South Wales",
@@ -23,9 +23,10 @@ func main() {
 	Footer := goAba.Footer{}
 
 	ABA := goAba.ABA{
-		Header: Header,
-		Footer: Footer,
+		Header:       Header,
+		Transactions: []goAba.Transaction{Transaction},
+		Footer:       Footer,
 	}
 
-	ABA.Generate([]goAba.Transaction{Transaction})
+	ABA.Generate()
 }
