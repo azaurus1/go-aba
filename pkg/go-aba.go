@@ -1,10 +1,21 @@
 package goAba
 
 import (
-	"fmt"
 	"log"
 	"strconv"
 	"time"
+)
+
+const (
+	Debit           = "13"
+	Credit          = "50"
+	AusGovSecInt    = "51"
+	FamilyAllowance = "52"
+	Pay             = "53"
+	Pension         = "54"
+	Allotment       = "55"
+	Dividend        = "56"
+	Debenture       = "57"
 )
 
 func (aba *ABA) Generate() error {
@@ -13,23 +24,26 @@ func (aba *ABA) Generate() error {
 	headerStr := aba.GenerateHeader()
 	transactionSlice = aba.GenerateTransactions()
 	footerStr := aba.GenerateFooter()
+
 	log.Println(headerStr)
-	log.Println(transactionSlice)
+	for _, transaction := range transactionSlice {
+		log.Println(transaction)
+	}
 	log.Println(footerStr)
+
 	return nil
 }
 
 func (aba *ABA) GenerateHeader() string {
-	userTrunc := aba.Header.User[0:26] // Truncate user name to 26 chars
+	aba.Header.User = aba.Header.User[0:26] // Truncate user name to 26 chars
 
-	userNum := strconv.Itoa(aba.Header.UserNumber)
-	if len(userNum) > 6 {
-		userNum = userNum[0:6] // Too long, truncate user number
-	} else if len(userNum) < 6 { // else shift to the right and prepend 0's
-		userNum = fillField(6, userNum, "right", "0")
+	if len(aba.Header.UserNumber) > 6 {
+		aba.Header.UserNumber = aba.Header.UserNumber[0:6] // Too long, truncate user number
+	} else if len(aba.Header.UserNumber) < 6 { // else shift to the right and prepend 0's
+		aba.Header.UserNumber = fillField(6, aba.Header.UserNumber, "right", "0")
 	}
 
-	descTrunc := aba.Header.Description[0:12] // truncate description
+	aba.Header.Description = aba.Header.Description[0:12] // truncate description
 
 	if aba.Header.Date == "" {
 		// Get the current time
@@ -39,38 +53,102 @@ func (aba *ABA) GenerateHeader() string {
 		aba.Header.Date = now.Format("020106")
 	}
 
-	headerStr := fmt.Sprintf("0                 01%s       %s%s%s%s                                        ", aba.Header.Bank, userTrunc, userNum, descTrunc, aba.Header.Date)
-	return headerStr
+	return aba.Header.toString()
 }
 
 func (aba *ABA) GenerateTransactions() []string {
 	var transactions []string
+	var transactionStr string
 	for _, transaction := range aba.Transactions {
+		// add record
+		transactionStr += "1"
+
+		// add bsb
 		bankNum := buildBankNumber(transaction.BSB)
+		transactionStr += bankNum
 
-		amount := strconv.Itoa(int(transaction.Amount))
-		amount = fillField(10, amount, "right", "0")
+		// add acc number
+		accNum := buildAccNumber(transaction.Account)
+		transactionStr += accNum
 
-		transactionStr := fmt.Sprintf("1%s   %s %s%s%s%s", bankNum, transaction.Account, transaction.TransactionCode, amount, transaction.AccountTitle, transaction.Reference)
+		// add indicator
+		// dont have one right now (TODO:?)
+		transactionStr += " "
+
+		// add transaction code
+		transactionStr += transaction.TransactionCode
+
+		// add amount
+		amountStr := buildTotal(transaction.Amount)
+		amount := fillField(10, amountStr, "right", "0")
+		transactionStr += amount
+
+		// add title
+		titleStr := fillField(32, transaction.AccountTitle, "left", " ")
+		transactionStr += titleStr
+
+		// add reference
+		refStr := fillField(18, transaction.Reference, "left", " ")
+		transactionStr += refStr
+
+		//add trace record
+		transactionStr += buildBankNumber(transaction.TraceBSB)
+
+		//add trace acc
+		transactionStr += fillField(9, transaction.TraceAccount, "right", " ")
+
+		//add remitter
+		transactionStr += fillField(16, transaction.Remitter, "left", " ")
+
+		//add tax
+		transactionStr += fillField(8, buildTotal(transaction.TaxAmount), "right", "0")
+
 		transactions = append(transactions, transactionStr)
 	}
 	return transactions
 }
 
 func (aba *ABA) GenerateFooter() string {
+	var netTotalAmt float64
+	var creditTotalAmt float64
+	var debitTotalAmt float64
 
-	netTotalAmt := aba.Footer.NetTotal
-	netTotalAmt = fillField(10, netTotalAmt, "right", "0")
+	var netTotalStr string
+	var creditTotalStr string
+	var debitTotalStr string
 
-	creditTotalAmt := aba.Footer.CreditTotal
-	creditTotalAmt = fillField(10, creditTotalAmt, "right", "0")
+	// net total: credit - debit, unsigned
+	// build from transactions
+	for _, transaction := range aba.Transactions {
+		if transaction.TransactionCode == Credit {
+			// add to credit total
+			creditTotalAmt += transaction.Amount
+		} else if transaction.TransactionCode == Debit {
+			// add to debit total amount
+			debitTotalAmt += transaction.Amount
+		}
+	}
+	// build netTotal
+	if creditTotalAmt > debitTotalAmt {
+		netTotalAmt = creditTotalAmt - debitTotalAmt
+	} else if creditTotalAmt < debitTotalAmt {
+		netTotalAmt = debitTotalAmt - creditTotalAmt
+	} else {
+		// throw it away, it cannot be 0
+		log.Println("net ammount cannot be 0")
+		return ""
+	}
 
-	debitTotalAmt := aba.Footer.DebitTotal
-	debitTotalAmt = fillField(10, debitTotalAmt, "right", "0")
+	netTotalStr = buildTotal(netTotalAmt)
+	creditTotalStr = buildTotal(creditTotalAmt)
+	debitTotalStr = buildTotal(debitTotalAmt)
+
+	aba.Footer.NetTotal = netTotalStr
+	aba.Footer.CreditTotal = creditTotalStr
+	aba.Footer.DebitTotal = debitTotalStr
 
 	countOfRecords := strconv.Itoa(len(aba.Transactions))
-	countOfRecords = fillField(6, countOfRecords, "right", "0")
+	aba.Footer.NumberOfTransactions = fillField(6, countOfRecords, "right", "0")
 
-	footerStr := fmt.Sprintf("7999-999            %s%s%s                        %s                                        ", netTotalAmt, creditTotalAmt, debitTotalAmt, countOfRecords)
-	return footerStr
+	return aba.Footer.toString()
 }

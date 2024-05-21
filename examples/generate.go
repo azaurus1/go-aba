@@ -6,12 +6,12 @@ func main() {
 	Header := goAba.Header{
 		Bank:        "ANZ",
 		User:        "Allowasa Pertolio Accounting&Tax",
-		UserNumber:  1234,
+		UserNumber:  "1234",
 		Description: "Credits Of The Wooloomooloo",
 	}
 	Transaction := goAba.Transaction{
 		BSB:             "061021",
-		TransactionCode: "50",
+		TransactionCode: goAba.Credit,
 		Account:         "123456",
 		Amount:          12.0,
 		AccountTitle:    "Georgian Council of New South Wales",

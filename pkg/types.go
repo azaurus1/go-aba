@@ -1,6 +1,9 @@
 package goAba
 
-import "time"
+import (
+	"fmt"
+	"time"
+)
 
 type Header struct {
 	Type        string    // should be "0"
@@ -8,7 +11,7 @@ type Header struct {
 	Account     string    // Main account number, Up to 9 chars, ignored
 	Bank        string    // Name of Financial institution processing the file, 3 char "ANZ", "WBC"
 	User        string    // How the user will be shown in the transactions of the 3rd party banks
-	UserNumber  int       // The ID of the user supplying this file
+	UserNumber  string    // The ID of the user supplying this file
 	Description string    // Description of this file entries, up to 12 chars
 	Date        string    // date to be processed
 	Time        time.Time // time to be processed, ignored.
@@ -46,7 +49,7 @@ type Transaction struct {
 	TraceBSB        string  // the transacting account BSB
 	TraceAccount    string  // the transacting account number
 	Remitter        string  // trhe transacting company name.
-	TaxAmount       string  //
+	TaxAmount       float64 //
 }
 
 type ABA struct {
@@ -54,4 +57,14 @@ type ABA struct {
 	Schema       []Schema
 	Footer       Footer
 	Transactions []Transaction
+}
+
+func (h *Header) toString() string {
+	headerStr := fmt.Sprintf("0                 01%s       %s%s%s%s                                        ", h.Bank, h.User, h.UserNumber, h.Description, h.Date)
+	return headerStr
+}
+
+func (f *Footer) toString() string {
+	footerStr := fmt.Sprintf("7999-999            %s%s%s                        %s                                        ", f.NetTotal, f.CreditTotal, f.DebitTotal, f.NumberOfTransactions)
+	return footerStr
 }
