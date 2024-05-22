@@ -1,6 +1,6 @@
 # go-aba
 
-A Go library for generating ABA files.
+A Go library for generating ABA banking files.
 
 # Usage
 Install:
