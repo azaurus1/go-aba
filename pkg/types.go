@@ -59,12 +59,60 @@ type ABA struct {
 	Transactions []Transaction
 }
 
-func (h *Header) toString() string {
+func (h *Header) ToString() string {
 	headerStr := fmt.Sprintf("0                 01%s       %s%s%s%s                                        ", h.Bank, h.User, h.UserNumber, h.Description, h.Date)
 	return headerStr
 }
 
-func (f *Footer) toString() string {
+func (t *Transaction) ToString() string {
+	var transactionStr string
+	// add record
+	transactionStr += "1"
+
+	// add bsb
+	bankNum := buildBankNumber(t.BSB)
+	transactionStr += bankNum
+
+	// add acc number
+	accNum := buildAccNumber(t.Account)
+	transactionStr += accNum
+
+	// add indicator
+	// dont have one right now (TODO:?)
+	transactionStr += " "
+
+	// add transaction code
+	transactionStr += t.TransactionCode
+
+	// add amount
+	amountStr := buildTotal(t.Amount)
+	amount := fillField(10, amountStr, "right", "0")
+	transactionStr += amount
+
+	// add title
+	titleStr := fillField(32, t.AccountTitle, "left", " ")
+	transactionStr += titleStr
+
+	// add reference
+	refStr := fillField(18, t.Reference, "left", " ")
+	transactionStr += refStr
+
+	//add trace record
+	transactionStr += buildBankNumber(t.TraceBSB)
+
+	//add trace acc
+	transactionStr += fillField(9, t.TraceAccount, "right", " ")
+
+	//add remitter
+	transactionStr += fillField(16, t.Remitter, "left", " ")
+
+	//add tax
+	transactionStr += fillField(8, buildTotal(t.TaxAmount), "right", "0")
+
+	return transactionStr
+}
+
+func (f *Footer) ToString() string {
 	footerStr := fmt.Sprintf("7999-999            %s%s%s                        %s                                        ", f.NetTotal, f.CreditTotal, f.DebitTotal, f.NumberOfTransactions)
 	return footerStr
 }

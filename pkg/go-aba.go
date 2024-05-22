@@ -53,56 +53,14 @@ func (aba *ABA) GenerateHeader() string {
 		aba.Header.Date = now.Format("020106")
 	}
 
-	return aba.Header.toString()
+	return aba.Header.ToString()
 }
 
 func (aba *ABA) GenerateTransactions() []string {
 	var transactions []string
 	var transactionStr string
 	for _, transaction := range aba.Transactions {
-		// add record
-		transactionStr += "1"
-
-		// add bsb
-		bankNum := buildBankNumber(transaction.BSB)
-		transactionStr += bankNum
-
-		// add acc number
-		accNum := buildAccNumber(transaction.Account)
-		transactionStr += accNum
-
-		// add indicator
-		// dont have one right now (TODO:?)
-		transactionStr += " "
-
-		// add transaction code
-		transactionStr += transaction.TransactionCode
-
-		// add amount
-		amountStr := buildTotal(transaction.Amount)
-		amount := fillField(10, amountStr, "right", "0")
-		transactionStr += amount
-
-		// add title
-		titleStr := fillField(32, transaction.AccountTitle, "left", " ")
-		transactionStr += titleStr
-
-		// add reference
-		refStr := fillField(18, transaction.Reference, "left", " ")
-		transactionStr += refStr
-
-		//add trace record
-		transactionStr += buildBankNumber(transaction.TraceBSB)
-
-		//add trace acc
-		transactionStr += fillField(9, transaction.TraceAccount, "right", " ")
-
-		//add remitter
-		transactionStr += fillField(16, transaction.Remitter, "left", " ")
-
-		//add tax
-		transactionStr += fillField(8, buildTotal(transaction.TaxAmount), "right", "0")
-
+		transactionStr = transaction.ToString()
 		transactions = append(transactions, transactionStr)
 	}
 	return transactions
@@ -150,5 +108,5 @@ func (aba *ABA) GenerateFooter() string {
 	countOfRecords := strconv.Itoa(len(aba.Transactions))
 	aba.Footer.NumberOfTransactions = fillField(6, countOfRecords, "right", "0")
 
-	return aba.Footer.toString()
+	return aba.Footer.ToString()
 }
