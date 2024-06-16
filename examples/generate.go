@@ -1,6 +1,6 @@
 package main
 
-import goAba "github.com/azaurus1/go-aba/pkg"
+import goAba "github.com/azaurus1/go-aba"
 
 func main() {
 	Header := goAba.Header{

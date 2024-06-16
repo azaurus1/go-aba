@@ -3,7 +3,7 @@ package goAba_test
 import (
 	"testing"
 
-	goAba "github.com/azaurus1/go-aba/pkg"
+	goAba "github.com/azaurus1/go-aba"
 	"gotest.tools/v3/assert"
 )
 
