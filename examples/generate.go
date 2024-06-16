@@ -1,6 +1,10 @@
 package main
 
-import goAba "github.com/azaurus1/go-aba"
+import (
+	"log"
+
+	goAba "github.com/azaurus1/go-aba"
+)
 
 func main() {
 	Header := goAba.Header{
@@ -28,5 +32,6 @@ func main() {
 		Footer:       Footer,
 	}
 
-	ABA.Generate()
+	str, _ := ABA.Generate()
+	log.Println(str)
 }

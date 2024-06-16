@@ -18,20 +18,21 @@ const (
 	Debenture       = "57"
 )
 
-func (aba *ABA) Generate() error {
+func (aba *ABA) Generate() (string, error) {
 	var transactionSlice []string
+	var abaString string
 
 	headerStr := aba.GenerateHeader()
 	transactionSlice = aba.GenerateTransactions()
 	footerStr := aba.GenerateFooter()
 
-	log.Println(headerStr)
+	abaString += (headerStr + "\n")
 	for _, transaction := range transactionSlice {
-		log.Println(transaction)
+		abaString += (transaction + "\n")
 	}
-	log.Println(footerStr)
+	abaString += (footerStr)
 
-	return nil
+	return abaString, nil
 }
 
 func (aba *ABA) GenerateHeader() string {
