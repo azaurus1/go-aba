@@ -5,12 +5,6 @@ import (
 	"time"
 )
 
-package goAba
-
-import (
-	"time"
-)
-
 type Header struct {
 	Type        string    `json:"Type"`        // should be "0"
 	BSB         string    `json:"BSB"`         // Main account BSB. Ignored according to spec
@@ -64,7 +58,6 @@ type ABA struct {
 	Footer       Footer        `json:"footer"`
 	Transactions []Transaction `json:"transactions"`
 }
-
 
 func (h *Header) ToString() string {
 	headerStr := fmt.Sprintf("0                 01%s       %s%s%s%s                                        ", h.Bank, h.User, h.UserNumber, h.Description, h.Date)
