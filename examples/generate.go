@@ -1,10 +1,18 @@
 package main
 
 import (
+	"encoding/json"
 	"log"
 
 	goAba "github.com/azaurus1/go-aba"
 )
+
+type depayload struct {
+	Header       goAba.Header        `json:"header"`
+	Transactions []goAba.Transaction `json:"transactions"`
+	Footer       goAba.Footer        `json:"footer"`
+	FileName     string              `json:"filename"`
+}
 
 func main() {
 	Header := goAba.Header{
@@ -26,12 +34,22 @@ func main() {
 	}
 	Footer := goAba.Footer{}
 
-	ABA := goAba.ABA{
+	// ABA := goAba.ABA{
+	// 	Header:       Header,
+	// 	Transactions: []goAba.Transaction{Transaction},
+	// 	Footer:       Footer,
+	// }
+
+	// str, _ := ABA.Generate()
+
+	dePayload := depayload{
 		Header:       Header,
 		Transactions: []goAba.Transaction{Transaction},
 		Footer:       Footer,
+		FileName:     "test.aba",
 	}
 
-	str, _ := ABA.Generate()
-	log.Println(str)
+	marshalledStr, _ := json.Marshal(dePayload)
+
+	log.Println(marshalledStr)
 }
