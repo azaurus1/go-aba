@@ -51,5 +51,5 @@ func main() {
 
 	marshalledStr, _ := json.Marshal(dePayload)
 
-	log.Println(marshalledStr)
+	log.Println(string(marshalledStr))
 }
