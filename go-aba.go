@@ -82,7 +82,7 @@ func (aba *ABA) GenerateFooter() string {
 	// net total: credit - debit, unsigned
 	// build from transactions
 	for _, transaction := range aba.Transactions {
-		if transaction.TransactionCode == Credit {
+		if transaction.TransactionCode == Credit || transaction.TransactionCode == Pay {
 			// add to credit total
 			creditTotalAmt += transaction.Amount
 		} else if transaction.TransactionCode == Debit {
