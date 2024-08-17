@@ -37,9 +37,8 @@ func (aba *ABA) Generate() (string, error) {
 
 func (aba *ABA) GenerateHeader() string {
 
-	if !(len(aba.Header.User) < 26) {
-		log.Panic("User string is too short")
-	}
+	aba.Header.User = fillField(26, aba.Header.User, "left", " ")
+
 	aba.Header.User = aba.Header.User[0:26] // Truncate user name to 26 chars
 
 	if len(aba.Header.UserNumber) > 6 {
